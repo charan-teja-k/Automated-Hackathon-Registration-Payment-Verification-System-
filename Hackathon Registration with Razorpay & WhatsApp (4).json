@@ -1,0 +1,892 @@
+{
+  "name": "Hackathon Registration with Razorpay & WhatsApp",
+  "nodes": [
+    {
+      "parameters": {
+        "fields": {
+          "values": [
+            {
+              "name": "studentName",
+              "stringValue": "={{ $json[\"Full Name \"] }}"
+            },
+            {
+              "name": "email",
+              "stringValue": "={{ $json[\"  Email Address  \"] }}"
+            },
+            {
+              "name": "phone",
+              "type": "numberValue",
+              "numberValue": "={{ $json[\"  Phone Number  \"] }}"
+            },
+            {
+              "name": "utr",
+              "type": "numberValue",
+              "numberValue": "={{ $json[\"  UTR Number  \"] }}"
+            },
+            {
+              "name": "amount",
+              "type": "numberValue",
+              "numberValue": "500"
+            },
+            {
+              "name": "timestamp",
+              "stringValue": "={{ $json.Timestamp }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "0fe9a837-9b8c-4644-8037-147e8d2f7c35",
+      "name": "Extract Form Data",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3,
+      "position": [
+        -880,
+        176
+      ]
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1weLSVhBPkpBWYDdiHmbFRm74GTIwldMptkCMQJZFcJ0",
+          "mode": "list",
+          "cachedResultName": "checking_approved_failed",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1weLSVhBPkpBWYDdiHmbFRm74GTIwldMptkCMQJZFcJ0/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 570261719,
+          "mode": "list",
+          "cachedResultName": "Verified_UTRs",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1weLSVhBPkpBWYDdiHmbFRm74GTIwldMptkCMQJZFcJ0/edit#gid=570261719"
+        },
+        "filtersUI": {
+          "values": [
+            {
+              "lookupColumn": "UTR",
+              "lookupValue": "={{ $json.utr }}"
+            }
+          ]
+        },
+        "options": {
+          "returnAllMatches": "returnFirstMatch"
+        }
+      },
+      "id": "c414ca4a-7603-40ad-80fd-95382cfd24fa",
+      "name": "Check Duplicate UTR",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4,
+      "position": [
+        -688,
+        176
+      ],
+      "alwaysOutputData": true,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "kZFL1d586qsiCAc9",
+          "name": "Google Sheets account 2"
+        }
+      },
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 1
+          },
+          "conditions": [
+            {
+              "id": "1cd9ae4c-3181-4380-8c7f-1741ab54074c",
+              "leftValue": "={{ ($json.UTR ? '1' : '0') }}\n",
+              "rightValue": "0\n",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "825eb8e8-e75c-427d-a1e5-d089625cc486",
+      "name": "Is Duplicate?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        -480,
+        176
+      ],
+      "alwaysOutputData": false
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1weLSVhBPkpBWYDdiHmbFRm74GTIwldMptkCMQJZFcJ0",
+          "mode": "list",
+          "cachedResultName": "checking_approved_failed",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1weLSVhBPkpBWYDdiHmbFRm74GTIwldMptkCMQJZFcJ0/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1899419044,
+          "mode": "list",
+          "cachedResultName": "Failed_Verifications",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1weLSVhBPkpBWYDdiHmbFRm74GTIwldMptkCMQJZFcJ0/edit#gid=1899419044"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Name": "={{ $item(0).$node[\"Extract Form Data\"].json.studentName }}\n",
+            "Email": "={{ $item(0).$node[\"Extract Form Data\"].json.email }}\n",
+            "Phone": "={{ $item(0).$node[\"Extract Form Data\"].json.phone }}\n",
+            "UTR": "={{ $item(0).$node[\"Extract Form Data\"].json.utr }}\n",
+            "Reason": "Duplicate UTR"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Name",
+              "displayName": "Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Email",
+              "displayName": "Email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Phone",
+              "displayName": "Phone",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "UTR",
+              "displayName": "UTR",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Reason",
+              "displayName": "Reason",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Timestamp",
+              "displayName": "Timestamp",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "id": "d6bbbafa-d8df-42ff-9e2a-e01226e7998b",
+      "name": "Add to Failed (Duplicate)",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4,
+      "position": [
+        -288,
+        320
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "kZFL1d586qsiCAc9",
+          "name": "Google Sheets account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "https://api.razorpay.com/v1/payments",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBasicAuth",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "count",
+              "value": "50"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "b75c5e89-4a7e-48ee-bcd5-266d4f7d13a0",
+      "name": "Razorpay - Fetch Recent Payments",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -288,
+        32
+      ],
+      "credentials": {
+        "httpBasicAuth": {
+          "id": "j6NTkV2Eoi2OWc53",
+          "name": "live_razorpay"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const utrToFind = $('Extract Form Data').item.json.utr;\nconst payments = $input.item.json.items || [];\n\n// Find payment with matching UTR\nconst matchedPayment = payments.find(payment => {\n  const acquirerData = payment.acquirer_data || {};\n  const utr = acquirerData.utr || acquirerData.rrn || '';\n  return utr.toString() === utrToFind.toString();\n});\n\nif (matchedPayment) {\n  return {\n    json: {\n      found: true,\n      paymentId: matchedPayment.id,\n      amount: matchedPayment.amount / 100, // Convert paise to rupees\n      status: matchedPayment.status,\n      utr: matchedPayment.acquirer_data.utr || matchedPayment.acquirer_data.rrn,\n      method: matchedPayment.method,\n      email: matchedPayment.email,\n      contact: matchedPayment.contact\n    }\n  };\n} else {\n  return {\n    json: {\n      found: false,\n      utr: utrToFind\n    }\n  };\n}"
+      },
+      "id": "bef2bcad-bc58-4773-910b-efc744fa4f54",
+      "name": "Find UTR in Payments",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -80,
+        32
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 1
+          },
+          "conditions": [
+            {
+              "id": "40d15250-ef16-4c4c-95df-224f2b0efa54",
+              "leftValue": "={{ $json.amount }}",
+              "rightValue": 1,
+              "operator": {
+                "type": "number",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "9382a281-eea5-4dbe-9a7a-ac6e3763e6b3",
+      "name": "Payment Valid?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        160,
+        32
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1weLSVhBPkpBWYDdiHmbFRm74GTIwldMptkCMQJZFcJ0",
+          "mode": "list",
+          "cachedResultName": "checking_approved_failed",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1weLSVhBPkpBWYDdiHmbFRm74GTIwldMptkCMQJZFcJ0/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 570261719,
+          "mode": "list",
+          "cachedResultName": "Verified_UTRs",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1weLSVhBPkpBWYDdiHmbFRm74GTIwldMptkCMQJZFcJ0/edit#gid=570261719"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "UTR": "={{ $('Extract Form Data').item.json.utr }}",
+            "StudentName": "={{ $('Extract Form Data').item.json.studentName }}",
+            "PaymentId": "={{ $json.paymentId }}",
+            "Amount": "={{ $json.amount }}",
+            "Timestamp": "={{ $('Extract Form Data').item.json.timestamp }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "UTR",
+              "displayName": "UTR",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "StudentName",
+              "displayName": "StudentName",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "PaymentId",
+              "displayName": "PaymentId",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Amount",
+              "displayName": "Amount",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Timestamp",
+              "displayName": "Timestamp",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "id": "d149296f-dc3b-44bc-b016-4e4f61c6c41a",
+      "name": "Save Verified UTR",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4,
+      "position": [
+        320,
+        -80
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "kZFL1d586qsiCAc9",
+          "name": "Google Sheets account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1weLSVhBPkpBWYDdiHmbFRm74GTIwldMptkCMQJZFcJ0",
+          "mode": "list",
+          "cachedResultName": "checking_approved_failed",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1weLSVhBPkpBWYDdiHmbFRm74GTIwldMptkCMQJZFcJ0/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1056052666,
+          "mode": "list",
+          "cachedResultName": "Verified_Students",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1weLSVhBPkpBWYDdiHmbFRm74GTIwldMptkCMQJZFcJ0/edit#gid=1056052666"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Name": "={{ $json.StudentName }}",
+            "Email": "={{ $('Extract Form Data').item.json.email }}",
+            "Phone": "={{ $('Extract Form Data').item.json.phone }}",
+            "UTR": "={{ $('Extract Form Data').item.json.utr }}",
+            "Amount": "={{ $json.Amount }}",
+            "PaymentId": "={{ $('Payment Valid?').item.json.paymentId }}",
+            "VerifiedAt": "={{ $('Extract Form Data').item.json.Timestamp }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Name",
+              "displayName": "Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Email",
+              "displayName": "Email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Phone",
+              "displayName": "Phone",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "UTR",
+              "displayName": "UTR",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Amount",
+              "displayName": "Amount",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "PaymentId",
+              "displayName": "PaymentId",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "VerifiedAt",
+              "displayName": "VerifiedAt",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "id": "10edb5f4-f581-4858-a6eb-cd1f34a1764c",
+      "name": "Add to Verified Students",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4,
+      "position": [
+        528,
+        -80
+      ],
+      "executeOnce": false,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "kZFL1d586qsiCAc9",
+          "name": "Google Sheets account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1weLSVhBPkpBWYDdiHmbFRm74GTIwldMptkCMQJZFcJ0",
+          "mode": "list",
+          "cachedResultName": "checking_approved_failed",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1weLSVhBPkpBWYDdiHmbFRm74GTIwldMptkCMQJZFcJ0/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1899419044,
+          "mode": "list",
+          "cachedResultName": "Failed_Verifications",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1weLSVhBPkpBWYDdiHmbFRm74GTIwldMptkCMQJZFcJ0/edit#gid=1899419044"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Reason": "Payment Not Found or Invalid in Razorpay",
+            "Name": "={{ $('Extract Form Data').item.json.studentName }}",
+            "Email": "={{ $('Extract Form Data').item.json.email }}",
+            "Phone": "={{ $('Extract Form Data').item.json.phone }}",
+            "UTR": "={{ $('Extract Form Data').item.json.utr }}",
+            "Timestamp": "={{ $('Extract Form Data').item.json.Timestamp }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Name",
+              "displayName": "Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Email",
+              "displayName": "Email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Phone",
+              "displayName": "Phone",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "UTR",
+              "displayName": "UTR",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Reason",
+              "displayName": "Reason",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Timestamp",
+              "displayName": "Timestamp",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "id": "e143c05b-258a-42b2-ac1a-1cac1234bae7",
+      "name": "Add to Failed (Payment Issue)",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4,
+      "position": [
+        320,
+        128
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "kZFL1d586qsiCAc9",
+          "name": "Google Sheets account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyMinute"
+            }
+          ]
+        },
+        "documentId": {
+          "__rl": true,
+          "value": "18IPX_N8Y7UvE77oaef-INfdKppDi1f5RoKvoQ9rNjdY",
+          "mode": "list",
+          "cachedResultName": "Hackathon 2025 Registration (Responses)",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/18IPX_N8Y7UvE77oaef-INfdKppDi1f5RoKvoQ9rNjdY/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 701908454,
+          "mode": "list",
+          "cachedResultName": "Form Responses 1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/18IPX_N8Y7UvE77oaef-INfdKppDi1f5RoKvoQ9rNjdY/edit#gid=701908454"
+        },
+        "event": "rowAdded",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheetsTrigger",
+      "typeVersion": 1,
+      "position": [
+        -1104,
+        176
+      ],
+      "id": "c20e48cc-ced1-44cb-9f88-11596766b922",
+      "name": "Google Sheets Trigger1",
+      "credentials": {
+        "googleSheetsTriggerOAuth2Api": {
+          "id": "NJSLbUeYHMf8RkXo",
+          "name": "Google Sheets Trigger account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "fromEmail": "pixelpirates@gmail.com",
+        "toEmail": "={{ $('Extract Form Data').item.json.email }}",
+        "subject": "✅ Hackathon Registration Confirmed – Payment Verified",
+        "emailFormat": "text",
+        "text": "=Hello {{ $json.studentName }},\n\nYour registration for the Hackathon has been successfully confirmed.\n\n📌 Payment Details:\nUTR Number: {{ $json.utr }}\nAmount Paid: ₹{{ $json.amount }}\nPayment Time: {{ $json.timestamp }}\n\nWe have verified your payment and your seat is now secured.\n\n📅 Further details such as event schedule, team formation, and venue information\nwill be shared with you soon via email.\n\nIf you have any questions, feel free to reply to this mail.\n\nBest regards,\nHackathon Organizing Team\n",
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [
+        736,
+        -80
+      ],
+      "id": "f5cfae91-010c-4e47-bfca-aa5e7f33be93",
+      "name": "Send email",
+      "webhookId": "0b69d75d-5aa8-482e-8afd-260c133a366d",
+      "credentials": {
+        "smtp": {
+          "id": "0ptgVT0afG3U57hY",
+          "name": "SMTP account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "fromEmail": "pixelpirates@gmail.com",
+        "toEmail": "={{ $('Extract Form Data').item.json.email }}",
+        "subject": "❌ Hackathon Registration – Payment Verification Failed",
+        "emailFormat": "text",
+        "text": "=Hello {{ $json.Name }},\n\nThank you for registering for the Hackathon.\n\nUnfortunately, we were unable to verify your payment with the details you provided.\n\n📌 Payment Details Submitted:\nUTR Number: {{ $json.UTR }}\nAmount: ₹{{ $json.Amount }}\n\nPossible reasons for failure:\n- Incorrect or incomplete UTR number\n- Payment is still pending\n- Payment was made to a different QR/account\n- Bank delay in updating the transaction\n\n⚠️ What you should do next:\n1. Please recheck the UTR number you entered.\n2. If the payment was successful, wait for some time and try again.\n3. If the issue persists, contact the organizing team with a payment screenshot.\n\nYour registration will remain **pending** until the payment is successfully verified.\n\nIf you believe this is an error, feel free to reply to this email.\n\nRegards,  \nHackathon Organizing Team\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [
+        544,
+        144
+      ],
+      "id": "f83d1396-b8e7-4a65-9b9d-41be50b6b53e",
+      "name": "Send email1",
+      "webhookId": "0b69d75d-5aa8-482e-8afd-260c133a366d",
+      "credentials": {
+        "smtp": {
+          "id": "0ptgVT0afG3U57hY",
+          "name": "SMTP account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "fromEmail": "pixelpirates@gmail.com",
+        "toEmail": "={{ $('Extract Form Data').item.json.email }}",
+        "subject": "⚠️ Hackathon Registration – Duplicate Payment Reference Detected",
+        "emailFormat": "text",
+        "text": "=Hello {{ $json.Name }},\n\nThank you for registering for the Hackathon.\n\nThe UTR number you submitted has already been used for a previous registration, \nso we are unable to proceed with this entry.\n\n📌 Submitted Payment Details:\nUTR Number: {{ $json.UTR }}\nAmount: ₹{{ $json.Amount }}\n\nTo maintain fair and secure registrations, each participant must use a \nunique payment reference (UTR).\n\n⚠️ What you should do next:\n- If you have made a separate payment, please submit the form again using the correct UTR.\n- If you believe this is a mistake, contact the organizing team with proof of payment.\n\nThis registration is currently **on hold** until the issue is resolved.\n\nRegards,  \nHackathon Organizing Team\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [
+        -80,
+        288
+      ],
+      "id": "01c47416-f6f8-49d0-86f1-9deb616d7767",
+      "name": "Send email2",
+      "webhookId": "0b69d75d-5aa8-482e-8afd-260c133a366d",
+      "credentials": {
+        "smtp": {
+          "id": "0ptgVT0afG3U57hY",
+          "name": "SMTP account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Extract Form Data": {
+      "main": [
+        [
+          {
+            "node": "Check Duplicate UTR",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Duplicate UTR": {
+      "main": [
+        [
+          {
+            "node": "Is Duplicate?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Is Duplicate?": {
+      "main": [
+        [
+          {
+            "node": "Razorpay - Fetch Recent Payments",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Add to Failed (Duplicate)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Razorpay - Fetch Recent Payments": {
+      "main": [
+        [
+          {
+            "node": "Find UTR in Payments",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Find UTR in Payments": {
+      "main": [
+        [
+          {
+            "node": "Payment Valid?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Payment Valid?": {
+      "main": [
+        [
+          {
+            "node": "Save Verified UTR",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Add to Failed (Payment Issue)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save Verified UTR": {
+      "main": [
+        [
+          {
+            "node": "Add to Verified Students",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Add to Verified Students": {
+      "main": [
+        [
+          {
+            "node": "Send email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Add to Failed (Payment Issue)": {
+      "main": [
+        [
+          {
+            "node": "Send email1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Sheets Trigger1": {
+      "main": [
+        [
+          {
+            "node": "Extract Form Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Add to Failed (Duplicate)": {
+      "main": [
+        [
+          {
+            "node": "Send email2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": false
+  },
+  "versionId": "e0ad1037-e9aa-4b91-a721-bdc964cd4ace",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "888d96e1f2a447f981a63c2605989e365b9df70df9ec8bf312e6d79bc2fad8a8"
+  },
+  "id": "gmT5qHBAoRXgKgNl",
+  "tags": []
+}
